@@ -83,6 +83,9 @@ public class RangeSeekBar<T extends Number> extends AppCompatImageView {
     private static final int DEFAULT_TEXT_DISTANCE_TO_BUTTON_IN_DP = 8;
     private static final int DEFAULT_TEXT_DISTANCE_TO_TOP_IN_DP = 8;
 
+    public static final int LABEL_POSITION_CENTER = 0;
+    public static final int LABEL_POSITION_BOTTOM = 1;
+
     private static final int LINE_HEIGHT_IN_DP = 1;
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint shadowPaint = new Paint();
@@ -93,6 +96,8 @@ public class RangeSeekBar<T extends Number> extends AppCompatImageView {
 
     private String minLabelText;
     private String maxLabelText;
+
+    private int labelPosition;
 
     private float thumbHalfWidth;
     private float thumbHalfHeight;
@@ -200,6 +205,7 @@ public class RangeSeekBar<T extends Number> extends AppCompatImageView {
             activateOnDefaultValues = false;
             minLabelText = context.getString(R.string.demo_min_label);
             maxLabelText = context.getString(R.string.demo_max_label);
+            labelPosition = LABEL_POSITION_CENTER;
         } else {
             TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.RangeSeekBar, 0, 0);
             try {
@@ -218,6 +224,7 @@ public class RangeSeekBar<T extends Number> extends AppCompatImageView {
                 defaultColor = a.getColor(R.styleable.RangeSeekBar_defaultColor, Color.GRAY);
                 alwaysActive = a.getBoolean(R.styleable.RangeSeekBar_alwaysActive, false);
                 showAlwaysDisabledThumbs = a.getBoolean(R.styleable.RangeSeekBar_showAlwaysDisabledThumbs, false);
+                labelPosition = a.getInt(R.styleable.RangeSeekBar_labelPosition, LABEL_POSITION_CENTER);
 
                 Drawable normalDrawable = a.getDrawable(R.styleable.RangeSeekBar_thumbNormal);
                 if (normalDrawable != null) {
@@ -475,6 +482,14 @@ public class RangeSeekBar<T extends Number> extends AppCompatImageView {
     }
 
     /**
+     * @param labelPosition should be {@link #LABEL_POSITION_CENTER} or {@link #LABEL_POSITION_BOTTOM}
+     */
+    public void setLabelPosition(int labelPosition) {
+        this.labelPosition = labelPosition;
+        invalidate();
+    }
+
+    /**
      * Handles thumb selection and movement. Notifies listener callback on certain events.
      */
     @Override
@@ -635,6 +650,7 @@ public class RangeSeekBar<T extends Number> extends AppCompatImageView {
 
         int height = thumbImage.getHeight()
                 + (!showTextAboveThumbs ? 0 : PixelUtil.dpToPx(getContext(), HEIGHT_IN_DP))
+                + (labelPosition == LABEL_POSITION_CENTER || !showLabels ? 0 : PixelUtil.dpToPx(getContext(), HEIGHT_IN_DP))
                 + (thumbShadow ? thumbShadowYOffset + thumbShadowBlur : 0);
         if (MeasureSpec.UNSPECIFIED != MeasureSpec.getMode(heightMeasureSpec)) {
             height = Math.min(height, MeasureSpec.getSize(heightMeasureSpec));
@@ -654,6 +670,9 @@ public class RangeSeekBar<T extends Number> extends AppCompatImageView {
         paint.setColor(defaultColor);
         paint.setAntiAlias(true);
         float minMaxLabelSize = 0;
+        float minMaxHeight;
+        float minLabelSize = 0;
+        float maxLabelSize;
 
         if (showLabels) {
             // draw min and max labels
@@ -664,10 +683,19 @@ public class RangeSeekBar<T extends Number> extends AppCompatImageView {
                 maxLabelText = getContext().getString(R.string.demo_max_label);
             }
 
-            minMaxLabelSize = Math.max(paint.measureText(minLabelText), paint.measureText(maxLabelText));
-            float minMaxHeight = textOffset + thumbHalfHeight + textSize / 3;
-            canvas.drawText(minLabelText, 0, minMaxHeight, paint);
-            canvas.drawText(maxLabelText, getWidth() - minMaxLabelSize, minMaxHeight, paint);
+            if (labelPosition == LABEL_POSITION_CENTER) {
+                minMaxLabelSize = Math.max(paint.measureText(minLabelText), paint.measureText(maxLabelText));
+                minMaxHeight = textOffset + thumbHalfHeight + textSize / 3;
+                maxLabelSize = minMaxLabelSize;
+            } else {
+                maxLabelSize = Math.max(thumbHalfWidth * 4 / 3, paint.measureText(maxLabelText));
+                float minLabelTextSize = paint.measureText(minLabelText);
+                minLabelSize = minLabelTextSize > thumbHalfWidth ? 0 : thumbHalfWidth - minLabelTextSize / 2;
+                minMaxHeight = textOffset + thumbHalfHeight * 2 + textSize;
+            }
+
+            canvas.drawText(minLabelText, minLabelSize, minMaxHeight, paint);
+            canvas.drawText(maxLabelText, getWidth() - maxLabelSize, minMaxHeight, paint);
         }
         padding = internalPad + minMaxLabelSize + thumbHalfWidth;
 
@@ -696,7 +724,6 @@ public class RangeSeekBar<T extends Number> extends AppCompatImageView {
             canvas.drawBitmap(thumbDisabledImage, normalizedToScreen(0d) - thumbHalfWidth, textOffset, paint);
             canvas.drawBitmap(thumbDisabledImage, normalizedToScreen(1d) - thumbHalfWidth, textOffset, paint);
         }
-
 
         // draw minimum thumb (& shadow if requested) if not a single thumb control
         if (!singleThumb) {

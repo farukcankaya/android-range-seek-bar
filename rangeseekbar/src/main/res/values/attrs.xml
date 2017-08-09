@@ -57,6 +57,11 @@
         <attr name="maxLabel" format="string" />
 
         <attr name="showAlwaysDisabledThumbs" format="boolean" />
+
+        <attr name="labelPosition" format="enum">
+            <enum name="center" value="0" />
+            <enum name="bottom" value="1" />
+        </attr>
     </declare-styleable>
 
 </resources>
