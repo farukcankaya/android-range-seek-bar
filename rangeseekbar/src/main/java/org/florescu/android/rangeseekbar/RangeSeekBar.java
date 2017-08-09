@@ -717,7 +717,7 @@ public class RangeSeekBar<T extends Number> extends AppCompatImageView {
                 maxLabelSize = Math.max(thumbHalfWidth * 4 / 3, paint.measureText(maxLabelText));
                 float minLabelTextSize = paint.measureText(minLabelText);
                 minLabelSize = minLabelTextSize > thumbHalfWidth ? 0 : thumbHalfWidth - minLabelTextSize / 2;
-                minMaxHeight = textOffset + thumbHalfHeight * 2 + textSize;
+                minMaxHeight = textOffset + thumbHalfHeight * 2 + textSize + distanceToTop;
             }
 
             if (typeface != null) {
