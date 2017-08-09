@@ -780,7 +780,11 @@ public class RangeSeekBar<T extends Number> extends AppCompatImageView {
     }
 
     protected String valueToString(T value) {
-        return String.valueOf(value);
+        String stringValue = String.format("%.1f", value.doubleValue());
+        if (value.doubleValue() == value.longValue()) {
+            stringValue = String.format("%d", value.longValue());
+        }
+        return stringValue;
     }
 
     /**
