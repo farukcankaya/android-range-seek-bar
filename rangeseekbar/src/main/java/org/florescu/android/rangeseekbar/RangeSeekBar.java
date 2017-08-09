@@ -34,11 +34,11 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.ColorRes;
 import android.support.annotation.NonNull;
+import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.ViewConfiguration;
-import android.widget.ImageView;
 
 import org.florescu.android.util.BitmapUtil;
 import org.florescu.android.util.PixelUtil;
@@ -58,7 +58,7 @@ import java.math.BigDecimal;
  * @author Alex Florescu (alex@florescu.org)
  * @author Michael Keppler (bananeweizen@gmx.de)
  */
-public class RangeSeekBar<T extends Number> extends ImageView {
+public class RangeSeekBar<T extends Number> extends AppCompatImageView {
     /**
      * Default color of a {@link RangeSeekBar}, #FF33B5E5. This is also known as "Ice Cream Sandwich" blue.
      */
@@ -91,6 +91,9 @@ public class RangeSeekBar<T extends Number> extends ImageView {
     private Bitmap thumbPressedImage;
     private Bitmap thumbDisabledImage;
 
+    private String minLabelText;
+    private String maxLabelText;
+
     private float thumbHalfWidth;
     private float thumbHalfHeight;
 
@@ -120,6 +123,7 @@ public class RangeSeekBar<T extends Number> extends ImageView {
 
     private boolean singleThumb;
     private boolean alwaysActive;
+    private boolean showAlwaysDisabledThumbs;
     private boolean showLabels;
     private boolean showTextAboveThumbs;
     private float internalPad;
@@ -186,6 +190,7 @@ public class RangeSeekBar<T extends Number> extends ImageView {
             activeColor = ACTIVE_COLOR;
             defaultColor = Color.GRAY;
             alwaysActive = false;
+            showAlwaysDisabledThumbs = false;
             showTextAboveThumbs = true;
             textAboveThumbsColor = Color.WHITE;
             thumbShadowColor = defaultShadowColor;
@@ -193,6 +198,8 @@ public class RangeSeekBar<T extends Number> extends ImageView {
             thumbShadowYOffset = defaultShadowYOffset;
             thumbShadowBlur = defaultShadowBlur;
             activateOnDefaultValues = false;
+            minLabelText = context.getString(R.string.demo_min_label);
+            maxLabelText = context.getString(R.string.demo_max_label);
         } else {
             TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.RangeSeekBar, 0, 0);
             try {
@@ -210,6 +217,7 @@ public class RangeSeekBar<T extends Number> extends ImageView {
                 activeColor = a.getColor(R.styleable.RangeSeekBar_activeColor, ACTIVE_COLOR);
                 defaultColor = a.getColor(R.styleable.RangeSeekBar_defaultColor, Color.GRAY);
                 alwaysActive = a.getBoolean(R.styleable.RangeSeekBar_alwaysActive, false);
+                showAlwaysDisabledThumbs = a.getBoolean(R.styleable.RangeSeekBar_showAlwaysDisabledThumbs, false);
 
                 Drawable normalDrawable = a.getDrawable(R.styleable.RangeSeekBar_thumbNormal);
                 if (normalDrawable != null) {
@@ -230,6 +238,16 @@ public class RangeSeekBar<T extends Number> extends ImageView {
                 thumbShadowBlur = a.getDimensionPixelSize(R.styleable.RangeSeekBar_thumbShadowBlur, defaultShadowBlur);
 
                 activateOnDefaultValues = a.getBoolean(R.styleable.RangeSeekBar_activateOnDefaultValues, false);
+
+                String minLabel = a.getString(R.styleable.RangeSeekBar_minLabel);
+                if (minLabel != null) {
+                    minLabelText = minLabel;
+                }
+
+                String maxLabel = a.getString(R.styleable.RangeSeekBar_maxLabel);
+                if (maxLabel != null) {
+                    maxLabelText = maxLabel;
+                }
             } finally {
                 a.recycle();
             }
@@ -352,10 +370,11 @@ public class RangeSeekBar<T extends Number> extends ImageView {
     }
 
     /**
-      * Round off value using the {@link #absoluteStepValue}
-      * @param value to be rounded off
-      * @return rounded off value
-      */
+     * Round off value using the {@link #absoluteStepValue}
+     *
+     * @param value to be rounded off
+     * @return rounded off value
+     */
     @SuppressWarnings("unchecked")
     private T roundOffValueToStep(T value) {
         double d = Math.round(value.doubleValue() / absoluteStepValuePrim) * absoluteStepValuePrim;
@@ -432,6 +451,27 @@ public class RangeSeekBar<T extends Number> extends ImageView {
     @SuppressWarnings("unused")
     public void setThumbShadowPath(Path thumbShadowPath) {
         this.thumbShadowPath = thumbShadowPath;
+    }
+
+    /**
+     * @param minLabelText
+     */
+    public void setMinLabelText(String minLabelText) {
+        this.minLabelText = minLabelText;
+        invalidate();
+    }
+
+    /**
+     * @param maxLabelText
+     */
+    public void setMaxLabelText(String maxLabelText) {
+        this.maxLabelText = maxLabelText;
+        invalidate();
+    }
+
+    public void setShowAlwaysDisabledThumbs(boolean showAlwaysDisabledThumbs) {
+        this.showAlwaysDisabledThumbs = showAlwaysDisabledThumbs;
+        invalidate();
     }
 
     /**
@@ -617,12 +657,17 @@ public class RangeSeekBar<T extends Number> extends ImageView {
 
         if (showLabels) {
             // draw min and max labels
-            String minLabel = getContext().getString(R.string.demo_min_label);
-            String maxLabel = getContext().getString(R.string.demo_max_label);
-            minMaxLabelSize = Math.max(paint.measureText(minLabel), paint.measureText(maxLabel));
+            if (minLabelText == null) {
+                minLabelText = getContext().getString(R.string.demo_min_label);
+            }
+            if (maxLabelText == null) {
+                maxLabelText = getContext().getString(R.string.demo_max_label);
+            }
+
+            minMaxLabelSize = Math.max(paint.measureText(minLabelText), paint.measureText(maxLabelText));
             float minMaxHeight = textOffset + thumbHalfHeight + textSize / 3;
-            canvas.drawText(minLabel, 0, minMaxHeight, paint);
-            canvas.drawText(maxLabel, getWidth() - minMaxLabelSize, minMaxHeight, paint);
+            canvas.drawText(minLabelText, 0, minMaxHeight, paint);
+            canvas.drawText(maxLabelText, getWidth() - minMaxLabelSize, minMaxHeight, paint);
         }
         padding = internalPad + minMaxLabelSize + thumbHalfWidth;
 
@@ -643,6 +688,15 @@ public class RangeSeekBar<T extends Number> extends ImageView {
 
         paint.setColor(colorToUseForButtonsAndHighlightedLine);
         canvas.drawRect(rect, paint);
+
+        /**
+         * Show disabled thumbs always
+         */
+        if (showAlwaysDisabledThumbs) {
+            canvas.drawBitmap(thumbDisabledImage, normalizedToScreen(0d) - thumbHalfWidth, textOffset, paint);
+            canvas.drawBitmap(thumbDisabledImage, normalizedToScreen(1d) - thumbHalfWidth, textOffset, paint);
+        }
+
 
         // draw minimum thumb (& shadow if requested) if not a single thumb control
         if (!singleThumb) {
@@ -680,8 +734,8 @@ public class RangeSeekBar<T extends Number> extends ImageView {
                 if (overlap > 0f) {
                     // we could move them the same ("overlap * 0.5f")
                     // but we rather move more the one which is farther from the ends, as it has more space
-                    minPosition -= overlap * normalizedMinValue / (normalizedMinValue + 1-normalizedMaxValue);
-                    maxPosition += overlap * (1-normalizedMaxValue) / (normalizedMinValue + 1-normalizedMaxValue);
+                    minPosition -= overlap * normalizedMinValue / (normalizedMinValue + 1 - normalizedMaxValue);
+                    maxPosition += overlap * (1 - normalizedMaxValue) / (normalizedMinValue + 1 - normalizedMaxValue);
                 }
                 canvas.drawText(minText,
                         minPosition,
