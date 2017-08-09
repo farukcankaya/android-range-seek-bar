@@ -62,6 +62,8 @@
             <enum name="center" value="0" />
             <enum name="bottom" value="1" />
         </attr>
+
+        <attr name="textSize" format="dimension" />
     </declare-styleable>
 
 </resources>

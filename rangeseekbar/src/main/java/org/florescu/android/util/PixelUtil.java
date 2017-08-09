@@ -33,6 +33,11 @@ public class PixelUtil {
         return px;
     }
 
+    public static int spToPx(Context context, int sp) {
+        int px = (int) (sp * (context.getResources().getDisplayMetrics().scaledDensity));
+        return px;
+    }
+
     public static int pxToDp(Context context, int px) {
         int dp = Math.round(px / getPixelScaleFactor(context));
         return dp;

@@ -80,7 +80,7 @@ public class RangeSeekBar<T extends Number> extends AppCompatImageView {
     public static final int TEXT_LATERAL_PADDING_IN_DP = 3;
 
     private static final int INITIAL_PADDING_IN_DP = 8;
-    private static final int DEFAULT_TEXT_SIZE_IN_DP = 14;
+    private static final int DEFAULT_TEXT_SIZE_IN_SP = 14;
     private static final int DEFAULT_TEXT_DISTANCE_TO_BUTTON_IN_DP = 8;
     private static final int DEFAULT_TEXT_DISTANCE_TO_TOP_IN_DP = 8;
 
@@ -210,6 +210,7 @@ public class RangeSeekBar<T extends Number> extends AppCompatImageView {
             minLabelText = context.getString(R.string.demo_min_label);
             maxLabelText = context.getString(R.string.demo_max_label);
             labelPosition = LABEL_POSITION_CENTER;
+            textSize = PixelUtil.spToPx(context, DEFAULT_TEXT_SIZE_IN_SP);
         } else {
             TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.RangeSeekBar, 0, 0);
             try {
@@ -223,6 +224,7 @@ public class RangeSeekBar<T extends Number> extends AppCompatImageView {
                 singleThumb = a.getBoolean(R.styleable.RangeSeekBar_singleThumb, false);
                 showLabels = a.getBoolean(R.styleable.RangeSeekBar_showLabels, true);
                 internalPad = a.getDimensionPixelSize(R.styleable.RangeSeekBar_internalPadding, INITIAL_PADDING_IN_DP);
+                textSize = a.getDimensionPixelSize(R.styleable.RangeSeekBar_textSize, PixelUtil.spToPx(context, DEFAULT_TEXT_SIZE_IN_SP));
                 barHeight = a.getDimensionPixelSize(R.styleable.RangeSeekBar_barHeight, LINE_HEIGHT_IN_DP);
                 activeColor = a.getColor(R.styleable.RangeSeekBar_activeColor, ACTIVE_COLOR);
                 defaultColor = a.getColor(R.styleable.RangeSeekBar_defaultColor, Color.GRAY);
@@ -279,7 +281,6 @@ public class RangeSeekBar<T extends Number> extends AppCompatImageView {
 
         setValuePrimAndNumberType();
 
-        textSize = PixelUtil.dpToPx(context, DEFAULT_TEXT_SIZE_IN_DP);
         distanceToTop = PixelUtil.dpToPx(context, DEFAULT_TEXT_DISTANCE_TO_TOP_IN_DP);
         textOffset = !showTextAboveThumbs ? 0 : this.textSize + PixelUtil.dpToPx(context,
                 DEFAULT_TEXT_DISTANCE_TO_BUTTON_IN_DP) + this.distanceToTop;
@@ -506,6 +507,14 @@ public class RangeSeekBar<T extends Number> extends AppCompatImageView {
     }
 
     /**
+     * @param textSize in px
+     */
+    public void setTextSize(int textSize) {
+        this.textSize = textSize;
+        invalidate();
+    }
+
+    /**
      * Handles thumb selection and movement. Notifies listener callback on certain events.
      */
     @Override
@@ -665,8 +674,9 @@ public class RangeSeekBar<T extends Number> extends AppCompatImageView {
         }
 
         int height = thumbImage.getHeight()
-                + (!showTextAboveThumbs ? 0 : PixelUtil.dpToPx(getContext(), HEIGHT_IN_DP))
-                + (labelPosition == LABEL_POSITION_CENTER || !showLabels ? 0 : PixelUtil.dpToPx(getContext(), HEIGHT_IN_DP))
+                + (!showTextAboveThumbs ? 0 : textSize)
+                + (labelPosition == LABEL_POSITION_CENTER || !showLabels ? 0 : textSize)
+                + textOffset
                 + (thumbShadow ? thumbShadowYOffset + thumbShadowBlur : 0);
         if (MeasureSpec.UNSPECIFIED != MeasureSpec.getMode(heightMeasureSpec)) {
             height = Math.min(height, MeasureSpec.getSize(heightMeasureSpec));
