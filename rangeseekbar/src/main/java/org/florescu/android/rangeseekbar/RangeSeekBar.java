@@ -29,6 +29,7 @@ import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.Path;
 import android.graphics.RectF;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -96,6 +97,8 @@ public class RangeSeekBar<T extends Number> extends AppCompatImageView {
 
     private String minLabelText;
     private String maxLabelText;
+
+    private Typeface typeface;
 
     private int labelPosition;
 
@@ -495,6 +498,14 @@ public class RangeSeekBar<T extends Number> extends AppCompatImageView {
     }
 
     /**
+     * @param typeface
+     */
+    public void setTypeface(Typeface typeface) {
+        this.typeface = typeface;
+        invalidate();
+    }
+
+    /**
      * Handles thumb selection and movement. Notifies listener callback on certain events.
      */
     @Override
@@ -699,6 +710,9 @@ public class RangeSeekBar<T extends Number> extends AppCompatImageView {
                 minMaxHeight = textOffset + thumbHalfHeight * 2 + textSize;
             }
 
+            if (typeface != null) {
+                paint.setTypeface(typeface);
+            }
             canvas.drawText(minLabelText, minLabelSize, minMaxHeight, paint);
             canvas.drawText(maxLabelText, getWidth() - maxLabelSize, minMaxHeight, paint);
         }
@@ -773,6 +787,9 @@ public class RangeSeekBar<T extends Number> extends AppCompatImageView {
                     minPosition -= overlap * normalizedMinValue / (normalizedMinValue + 1 - normalizedMaxValue);
                     maxPosition += overlap * (1 - normalizedMaxValue) / (normalizedMinValue + 1 - normalizedMaxValue);
                 }
+                if (typeface != null) {
+                    paint.setTypeface(typeface);
+                }
                 canvas.drawText(minText,
                         minPosition,
                         distanceToTop + textSize,
@@ -780,6 +797,9 @@ public class RangeSeekBar<T extends Number> extends AppCompatImageView {
 
             }
 
+            if (typeface != null) {
+                paint.setTypeface(typeface);
+            }
             canvas.drawText(maxText,
                     maxPosition,
                     distanceToTop + textSize,
