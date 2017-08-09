@@ -112,6 +112,7 @@ public class RangeSeekBar<T extends Number> extends AppCompatImageView {
     private Thumb pressedThumb = null;
     private boolean notifyWhileDragging = false;
     private OnRangeSeekBarChangeListener<T> listener;
+    private IRangeSeekbarValueFormatter seekbarValueFormatter;
 
     private float downMotionX;
 
@@ -448,6 +449,10 @@ public class RangeSeekBar<T extends Number> extends AppCompatImageView {
         this.listener = listener;
     }
 
+    public void setSeekbarValueFormatter(IRangeSeekbarValueFormatter seekbarValueFormatter) {
+        this.seekbarValueFormatter = seekbarValueFormatter;
+    }
+
     /**
      * Set the path that defines the shadow of the thumb. This path should be defined assuming
      * that the center of the shadow is at the top left corner (0,0) of the canvas. The
@@ -748,6 +753,10 @@ public class RangeSeekBar<T extends Number> extends AppCompatImageView {
 
             String minText = valueToString(getSelectedMinValue());
             String maxText = valueToString(getSelectedMaxValue());
+            if (seekbarValueFormatter != null) {
+                minText = seekbarValueFormatter.formatValue(minText);
+                maxText = seekbarValueFormatter.formatValue(maxText);
+            }
             float minTextWidth = paint.measureText(minText);
             float maxTextWidth = paint.measureText(maxText);
             // keep the position so that the labels don't get cut off
@@ -1016,6 +1025,10 @@ public class RangeSeekBar<T extends Number> extends AppCompatImageView {
     public interface OnRangeSeekBarChangeListener<T extends Number> {
 
         void onRangeSeekBarValuesChanged(RangeSeekBar<T> bar, T minValue, T maxValue);
+    }
+
+    public interface IRangeSeekbarValueFormatter {
+        String formatValue(String value);
     }
 
 }
