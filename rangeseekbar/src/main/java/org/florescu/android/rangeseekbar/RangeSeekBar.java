@@ -779,7 +779,7 @@ public class RangeSeekBar<T extends Number> extends AppCompatImageView {
             String maxText = valueToString(getSelectedMaxValue());
             if (seekbarValueFormatter != null) {
                 minText = seekbarValueFormatter.formatValue(getSelectedMinValue(), minText);
-                maxText = seekbarValueFormatter.formatValue(getSelectedMinValue(), maxText);
+                maxText = seekbarValueFormatter.formatValue(getSelectedMaxValue(), maxText);
             }
             float minTextWidth = paint.measureText(minText);
             float maxTextWidth = paint.measureText(maxText);
